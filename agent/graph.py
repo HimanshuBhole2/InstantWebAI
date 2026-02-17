@@ -12,7 +12,7 @@ from tools import *
 from langgraph.constants import END
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import create_react_agent
-
+from langchain_anthropic import ChatAnthropic
 
 
 # from langchain_core.globals import set_debug
@@ -22,12 +22,24 @@ from langgraph.prebuilt import create_react_agent
 
 
 
-# llm = ChatGroq(model="openai/gpt-oss-120b")
+llm = ChatGroq(model="openai/gpt-oss-120b",max_tokens = 4096 )
+
+
+
+# llm = ChatGroq(model="llama-3.3-70b-versatile")
+
+# LangChain automatically reads ANTHROPIC_API_KEY from environment
+# llm = ChatAnthropic(
+#     model="claude-sonnet-4-5-20250929",
+#     max_tokens = 4096 
+# )
+
+
 
 # llm  = ChatOpenAI(model='gpt-4')
 
-llm = ChatGoogleGenerativeAI(model='gemini-2.5-flash')
-
+# llm_for_code = ChatGoogleGenerativeAI(model='gemini-2.5-flash')
+# llm = ChatOpenAI(model='gpt-4')
 
 
 
@@ -36,7 +48,12 @@ def planner_agent(state: dict) -> dict:
     resp = llm.with_structured_output(Plan).invoke(planner_prompt(user_prompt))
     if resp is None:
         return ValueError("Architect agent returned None")
+    print("========Planner Is Here===========")
+    print(resp)
+    print("========Planner Is end===========")
     return {"plan":resp}
+
+
 
 
 def architect_agent(state: dict) -> dict:
@@ -107,8 +124,10 @@ graph.set_entry_point("planner")
 
 agent = graph.compile()
 
-user_prompt = "create TODO list web application for me"
 
-
-result = agent.invoke({"user_prompt":user_prompt, "recursion_limit":100})  
-print(result)
+if __name__ == "__main__":
+    result = agent.invoke(
+        {"user_prompt": "Build a colourful Modern Calculator app in html css and js"},
+        {"recursion_limit": 100}
+)
+    print("Final State:", result)
