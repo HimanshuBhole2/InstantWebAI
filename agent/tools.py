@@ -4,7 +4,14 @@ from typing import Tuple
 from states import Plan
 from langchain_core.tools import tool
 
-PROJECT_ROOT = pathlib.Path.cwd() / f"Gerated_Projects/Project1"
+
+PROJECT_ROOT = pathlib.Path.cwd() / "Generated_Projects" / "Project1"  # default
+
+def set_project_root(path: str):
+    global PROJECT_ROOT
+    PROJECT_ROOT = pathlib.Path(path).resolve()
+    PROJECT_ROOT.mkdir(parents=True, exist_ok=True)
+
 
 
 def safe_path_for_project(path: str) -> pathlib.Path:

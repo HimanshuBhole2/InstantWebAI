@@ -22,7 +22,7 @@ from langchain_anthropic import ChatAnthropic
 
 
 
-llm = ChatGroq(model="openai/gpt-oss-120b",max_tokens = 4096 )
+# llm = ChatGroq(model="openai/gpt-oss-120b")
 
 
 
@@ -36,7 +36,7 @@ llm = ChatGroq(model="openai/gpt-oss-120b",max_tokens = 4096 )
 
 
 
-# llm  = ChatOpenAI(model='gpt-4')
+llm  = ChatOpenAI(model='gpt-4')
 
 # llm_for_code = ChatGoogleGenerativeAI(model='gemini-2.5-flash')
 # llm = ChatOpenAI(model='gpt-4')
@@ -48,8 +48,13 @@ def planner_agent(state: dict) -> dict:
     resp = llm.with_structured_output(Plan).invoke(planner_prompt(user_prompt))
     if resp is None:
         return ValueError("Architect agent returned None")
+    
     print("========Planner Is Here===========")
-    print(resp)
+    p_name = resp.name.replace(" ", "_")
+    new_proj_loc = f"Gen_Proj/{p_name}"
+    set_project_root(new_proj_loc)
+    
+    print({"plan":resp.name})
     print("========Planner Is end===========")
     return {"plan":resp}
 
@@ -59,11 +64,14 @@ def planner_agent(state: dict) -> dict:
 def architect_agent(state: dict) -> dict:
     plan : Plan = state["plan"]
     resp = llm.with_structured_output(TaskPlan).invoke(architect_prompt(plan))
+
     if resp is None:
         return ValueError("Architect agent returned None")
     
     resp.plan = plan
-
+    print("========Architect Is Here===========")
+    print({"task_plane": resp})
+    print("========Architect Is end===========")
     return {"task_plan":resp}
 
 def coader_agent(state: dict) -> dict:
@@ -80,7 +88,7 @@ def coader_agent(state: dict) -> dict:
         return {"coder_state": coder_state, "status": "Done"}
     
     current_task = steps[coder_state.current_step_idx]
-
+    
     existing_content = read_file.run(current_task.filepath)
 
 
@@ -103,6 +111,9 @@ def coader_agent(state: dict) -> dict:
         ]}
     )
     coder_state.current_step_idx += 1
+    print("========Coder Is Here===========")
+    print({"coder_state": coder_state})
+    print("========Coder Is end===========")
     return {"coder_state": coder_state}
     
 
@@ -127,7 +138,7 @@ agent = graph.compile()
 
 if __name__ == "__main__":
     result = agent.invoke(
-        {"user_prompt": "Build a colourful Modern Calculator app in html css and js"},
+        {"user_prompt": "Build TODO list simple js, html, css"},
         {"recursion_limit": 100}
-)
+    )
     print("Final State:", result)
